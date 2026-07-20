@@ -20,8 +20,10 @@ const productSchema = z.object({
   description: z.string().optional(),
   category: z.string().optional(),
   price: z.preprocess(
-    (val) => Number(val), 
-    z.number().int().positive("Price must be a positive integer").min(1, "Price must be at least 1")), // Price in cents
+    (val) => Number(val),
+    z.number().int().positive("Price must be a positive integer").min(1, "Price must be at least 1")
+  ),
+  imageUrl: z.string().optional(),
   highlights: z.string().optional(), // Comma separated string for highlights
   inStock: z.boolean().default(true),
 });
@@ -112,14 +114,23 @@ export default function AdminDashboard() {
   };
 
   const handleAddProduct = async (data: ProductFormInputs) => {
-    const highlightsArray = data.highlights ? data.highlights.split(",").map(s => s.trim()) : [];
-    await createProductMutation.mutateAsync({ ...data, highlights: highlightsArray });
+    const highlightsArray = data.highlights ? data.highlights.split(",").map((s) => s.trim()).filter(Boolean) : [];
+    await createProductMutation.mutateAsync({
+      ...data,
+      imageUrl: data.imageUrl || "",
+      highlights: highlightsArray,
+    });
   };
 
   const handleEditProduct = async (data: ProductFormInputs) => {
     if (!editingProduct) return;
-    const highlightsArray = data.highlights ? data.highlights.split(",").map(s => s.trim()) : [];
-    await updateProductMutation.mutateAsync({ id: editingProduct.id, ...data, highlights: highlightsArray });
+    const highlightsArray = data.highlights ? data.highlights.split(",").map((s) => s.trim()).filter(Boolean) : [];
+    await updateProductMutation.mutateAsync({
+      id: editingProduct.id,
+      ...data,
+      imageUrl: data.imageUrl || "",
+      highlights: highlightsArray,
+    });
   };
 
   const handleDeleteProduct = async (id: number) => {
@@ -130,7 +141,11 @@ export default function AdminDashboard() {
 
   const openEditDialog = (product: any) => {
     setEditingProduct(product);
-    resetEditProductForm({ ...product, highlights: product.highlights?.join(", ") });
+    resetEditProductForm({
+      ...product,
+      imageUrl: product.imageUrl || "",
+      highlights: product.highlights?.join(", "),
+    });
     setOpenEditProductDialog(true);
   };
 
@@ -236,7 +251,7 @@ export default function AdminDashboard() {
                   <DialogTrigger asChild>
                     <Button onClick={() => resetProductForm()}>Add New Product</Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
+                  <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                       <DialogTitle>Add New Product</DialogTitle>
                       <DialogDescription>Fill in the details for the new product.</DialogDescription>
@@ -256,13 +271,26 @@ export default function AdminDashboard() {
                         <Input id="category" {...registerProduct("category")} className="col-span-3" />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="price" className="text-right">Price (in cents)</Label>
-                        <Input id="price" type="number" {...registerProduct("price")} className="col-span-3" />
+                        <Label htmlFor="price" className="text-right">Price (in paise)</Label>
+                        <div className="col-span-3">
+                          <Input id="price" type="number" {...registerProduct("price")} />
+                          <p className="text-xs text-muted-foreground mt-1">Enter in paise: ₹250 = 25000</p>
+                        </div>
                         {productErrors.price && <p className="col-span-4 text-red-500 text-sm text-right">{productErrors.price.message}</p>}
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="highlights" className="text-right">Highlights (comma-separated)</Label>
-                        <Input id="highlights" {...registerProduct("highlights")} className="col-span-3" />
+                        <Label htmlFor="imageUrl" className="text-right">Image URL</Label>
+                        <div className="col-span-3">
+                          <Input id="imageUrl" type="url" placeholder="https://..." {...registerProduct("imageUrl")} />
+                          <p className="text-xs text-muted-foreground mt-1">Paste a public image URL (e.g. from Unsplash)</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="highlights" className="text-right">Highlights</Label>
+                        <div className="col-span-3">
+                          <Input id="highlights" {...registerProduct("highlights")} />
+                          <p className="text-xs text-muted-foreground mt-1">Comma-separated, e.g. "No Preservatives, Handmade"</p>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2 col-span-4 justify-end">
                         <Checkbox id="inStock" {...registerProduct("inStock")} />
@@ -282,7 +310,7 @@ export default function AdminDashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
+                        <TableHead>Image</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Price</TableHead>
@@ -293,10 +321,21 @@ export default function AdminDashboard() {
                     <TableBody>
                       {products.map((product) => (
                         <TableRow key={product.id}>
-                          <TableCell>{product.id}</TableCell>
+                          <TableCell>
+                            {product.imageUrl ? (
+                              <img
+                                src={product.imageUrl}
+                                alt={product.name}
+                                className="w-12 h-12 object-cover rounded"
+                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">No img</div>
+                            )}
+                          </TableCell>
                           <TableCell>{product.name}</TableCell>
                           <TableCell>{product.category}</TableCell>
-                          <TableCell>${(product.price / 100).toFixed(2)}</TableCell>
+                          <TableCell>₹{(product.price / 100).toFixed(0)}</TableCell>
                           <TableCell>{product.inStock ? "In Stock" : "Out of Stock"}</TableCell>
                           <TableCell className="flex gap-2">
                             <Button variant="outline" size="sm" onClick={() => openEditDialog(product)}>Edit</Button>
@@ -312,7 +351,7 @@ export default function AdminDashboard() {
 
                 {/* Edit Product Dialog */}
                 <Dialog open={openEditProductDialog} onOpenChange={setOpenEditProductDialog}>
-                  <DialogContent className="sm:max-w-[425px]">
+                  <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                       <DialogTitle>Edit Product</DialogTitle>
                       <DialogDescription>Modify the details of the product.</DialogDescription>
@@ -332,13 +371,26 @@ export default function AdminDashboard() {
                         <Input id="edit-category" {...registerEditProduct("category")} className="col-span-3" />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="edit-price" className="text-right">Price (in cents)</Label>
-                        <Input id="edit-price" type="number" {...registerEditProduct("price")} className="col-span-3" />
+                        <Label htmlFor="edit-price" className="text-right">Price (in paise)</Label>
+                        <div className="col-span-3">
+                          <Input id="edit-price" type="number" {...registerEditProduct("price")} />
+                          <p className="text-xs text-muted-foreground mt-1">Enter in paise: ₹250 = 25000</p>
+                        </div>
                         {editProductErrors.price && <p className="col-span-4 text-red-500 text-sm text-right">{editProductErrors.price.message}</p>}
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="edit-highlights" className="text-right">Highlights (comma-separated)</Label>
-                        <Input id="edit-highlights" {...registerEditProduct("highlights")} className="col-span-3" />
+                        <Label htmlFor="edit-imageUrl" className="text-right">Image URL</Label>
+                        <div className="col-span-3">
+                          <Input id="edit-imageUrl" type="url" placeholder="https://..." {...registerEditProduct("imageUrl")} />
+                          <p className="text-xs text-muted-foreground mt-1">Paste a public image URL</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="edit-highlights" className="text-right">Highlights</Label>
+                        <div className="col-span-3">
+                          <Input id="edit-highlights" {...registerEditProduct("highlights")} />
+                          <p className="text-xs text-muted-foreground mt-1">Comma-separated</p>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2 col-span-4 justify-end">
                         <Checkbox id="edit-inStock" {...registerEditProduct("inStock")} />

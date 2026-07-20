@@ -109,12 +109,16 @@ export const appRouter = router({
           description: z.string().optional(),
           category: z.string().max(100).optional(),
           price: z.number().int().positive(),
+          imageUrl: z.string().url().optional().or(z.literal("")),
           highlights: z.array(z.string()).optional(),
           inStock: z.boolean().default(true),
         })
       )
       .mutation(async ({ input }) => {
-        const newProduct = await createProduct(input);
+        const newProduct = await createProduct({
+          ...input,
+          imageUrl: input.imageUrl || null,
+        });
         if (!newProduct) {
           throw new Error("Failed to create product");
         }
@@ -128,13 +132,17 @@ export const appRouter = router({
           description: z.string().optional(),
           category: z.string().max(100).optional(),
           price: z.number().int().positive().optional(),
+          imageUrl: z.string().url().optional().or(z.literal("")),
           highlights: z.array(z.string()).optional(),
           inStock: z.boolean().optional(),
         })
       )
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
-        const updatedProduct = await updateProduct(id, data);
+        const updatedProduct = await updateProduct(id, {
+          ...data,
+          imageUrl: data.imageUrl || null,
+        });
         if (!updatedProduct) {
           throw new Error("Failed to update product");
         }

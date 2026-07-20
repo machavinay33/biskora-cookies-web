@@ -44,7 +44,7 @@ export default function AdminLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Admin Login</CardTitle>
-          <CardDescription>Enter your email and password to access the admin dashboard.</CardDescription>
+          <CardDescription>Enter your credentials to access the admin dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -53,7 +53,7 @@ export default function AdminLogin() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@biskora.com"
+                placeholder="Enter your email"
                 {...register("email")}
                 disabled={isLoading}
               />
@@ -64,7 +64,7 @@ export default function AdminLogin() {
               <Input
                 id="password"
                 type="password"
-                placeholder="biskora2024"
+                placeholder="Enter your password"
                 {...register("password")}
                 disabled={isLoading}
               />
