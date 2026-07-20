@@ -15,7 +15,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 // Serve static files
-app.use(express.static(path.join(import.meta.dirname, "../../dist/public")));
+app.use(express.static(path.resolve(process.cwd(), "dist/public")));
 
 // tRPC middleware
 app.use(
@@ -31,7 +31,7 @@ seedAdminUser();
 
 // All other requests return the SPA's index.html
 app.get("*", (req, res) => {
-  res.sendFile(path.join(import.meta.dirname, "../../dist/public/index.html"));
+  res.sendFile(path.resolve(process.cwd(), "dist/public/index.html"));
 });
 
 const port = process.env.PORT || 3000;
