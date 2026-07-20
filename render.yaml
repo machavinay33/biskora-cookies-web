@@ -3,7 +3,7 @@ services:
     name: biskora-cookies
     env: node
     plan: starter
-    buildCommand: pnpm install --include=dev && pnpm build
+    buildCommand: NODE_ENV=development pnpm install && pnpm build
     startCommand: pnpm start
     envVars:
       - key: DATABASE_URL
