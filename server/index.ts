@@ -5,7 +5,7 @@ import { createContext } from "./context";
 import path from "path";
 import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
-import { seedAdminUser } from "./seed";
+import { seedAdminUser, seedProducts } from "./seed";
 
 dotenv.config();
 
@@ -26,8 +26,9 @@ app.use(
   })
 );
 
-// Seed admin user on startup (for development/initial deployment)
+// Seed database on startup
 seedAdminUser();
+seedProducts();
 
 // All other requests return the SPA's index.html
 app.get("*", (req, res) => {
