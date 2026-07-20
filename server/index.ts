@@ -34,7 +34,9 @@ app.get("*", (req, res) => {
   res.sendFile(path.resolve(process.cwd(), "dist/public/index.html"));
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
+if (!process.argv.includes("--build")) {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+  });
+}
