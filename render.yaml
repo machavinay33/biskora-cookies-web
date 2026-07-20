@@ -7,6 +7,14 @@ services:
     startCommand: pnpm start
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: biskora-db
+          property: connectionString
       - key: JWT_SECRET
-        sync: false
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+
+databases:
+  - name: biskora-db
+    plan: starter

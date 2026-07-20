@@ -2,7 +2,7 @@ import { getDb } from "./db";
 import { adminUsers } from "../drizzle/schema";
 import bcrypt from "bcryptjs";
 
-async function seedAdminUser() {
+export async function seedAdminUser() {
   const db = await getDb();
   if (!db) {
     console.error("Database not available for seeding.");
@@ -14,7 +14,8 @@ async function seedAdminUser() {
   const name = "Admin User";
 
   try {
-    const existingAdmin = await db.select().from(adminUsers).where(adminUsers.email, email).limit(1);
+    const { eq } = await import("drizzle-orm");
+    const existingAdmin = await db.select().from(adminUsers).where(eq(adminUsers.email, email)).limit(1);
 
     if (existingAdmin.length === 0) {
       const passwordHash = await bcrypt.hash(password, 10);

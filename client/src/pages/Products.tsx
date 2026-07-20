@@ -123,9 +123,6 @@ export default function Products() {
                       <span className="text-white text-xl font-bold">Out of Stock</span>
                     </div>
                   )}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    whileHover={{ scale: 1.1 }}
-                  />
                 </div>
                 <CardHeader>
                   <CardTitle className="font-serif text-xl text-foreground">
