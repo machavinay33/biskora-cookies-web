@@ -6,6 +6,7 @@ import path from "path";
 import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
 import { seedAdminUser, seedProducts } from "./seed";
+import { runMigrations } from "./migrate";
 
 dotenv.config();
 
